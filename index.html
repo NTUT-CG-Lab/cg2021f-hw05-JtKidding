@@ -91,7 +91,7 @@
         let modelfile_num = 0;
         let loadstatus = 0;
         
-        let meshes = [];
+        let meshes = new Array(3);
         let morphs = new Array(3);
         let keys = new Array(3);
         let controls = new Array(3);
@@ -106,6 +106,7 @@
             , mouth_delta: 0, mouth_smirk: 0, mouth_raised_corner_left: 0, mouth_raised_corner_right: 0, mouth_lowered_corner_left: 0, mouth_lowered_corner_right: 0, iris_rotation_x: 0, iris_rotation_y: 0, head_x: 0, head_y: 0, head_z: 0
         };
 
+        let eyeRange = [];
         Ammo().then(function (AmmoLib) {
 
             Ammo = AmmoLib;
@@ -156,8 +157,28 @@
 
             }
 
-            // const modelFile = 'models/mmd/kizunaai/kizunaai.pmx';
-            // const modelFile = data_json.modellist[modelfile_num].location;
+            for (let i = 1; i < Object.keys(data_json.modellist[modelfile_num]).length - 6; i = i+2) {
+                let key1 = Object.keys(data_json.modellist[modelfile_num])[i];
+                let value1 = Object.values(data_json.modellist[modelfile_num])[i];
+                let key2 = Object.keys(data_json.modellist[modelfile_num])[i + 1];
+                let value2 = Object.values(data_json.modellist[modelfile_num])[i + 1];
+                console.log(key1, value1, key2, value2);
+                if (key1.indexOf('left') || key2.indexOf('right')) {
+                    console.log('in', key1, key2);
+                    let temp1 = key1.substr(0,key1.lastIndexOf("_"));
+                    let temp2 = key2.substr(0,key2.lastIndexOf("_"));
+                    
+                    console.log(temp1, temp2);
+                    if (temp1 === temp2 && value1 == value2 && value2 != -1) {
+                        data_json.modellist[modelfile_num][key2] = -1;
+                    }
+                }
+            }
+            eyeRange = [data_json.modellist[modelfile_num]['RXNA'], 
+                        data_json.modellist[modelfile_num]['RXPA'],
+                        data_json.modellist[modelfile_num]['RYNA'],
+                        data_json.modellist[modelfile_num]['RYPA']];
+            
             helper = new MMDAnimationHelper();
             const loader = new MMDLoader();
 
@@ -168,11 +189,9 @@
                     loader.load(model, function (object) {
                         let temp;
                         temp = object;
-                        // console.log('object', object);
                         temp.position.y = -10;
                         temp.name = 'mmdModel';
-                        meshes.push(temp);
-                        console.log('mesh', temp);
+                        meshes[i] = temp;
                         
                         if (i == 0) {
                             console.log ('loggggggin', i);
@@ -227,37 +246,6 @@
                 morphs[i] = gui.addFolder( fileName[i] );
             }
 
-            // for (const key in data_json.modellist[modelfile_num]) {
-            //     console.log('key',
-            //     Object.keys(data_json.modellist[modelfile_num]).indexOf(key), //position
-            //     key, '      ',  // origin name
-            //     key.substr(0,key.lastIndexOf("_")),   //change name
-            //     Object.values(data_json.modellist[modelfile_num])[Object.keys(data_json.modellist[modelfile_num]).indexOf(key)]); //value
-            //     // if (key.indexOf('left') || key.indexOf('right')) {
-
-            //     // }
-            // }
-            
-            // for (let i = 1; i < Object.keys(data_json.modellist[modelfile_num]).length - 6; i+2) {
-            //     let key1 = Object.keys(data_json.modellist[modelfile_num])[i];
-            //     let value1 = Object.values(data_json.modellist[modelfile_num])[i];
-            //     let key2 = Object.keys(data_json.modellist[modelfile_num])[i + 1];
-            //     let value2 = Object.values(data_json.modellist[modelfile_num])[i + 1];
-            //     // if (key1.indexOf('left') || key2.indexOf('right')) {
-            //     //     key1 = key1.substr(0,key1.lastIndexOf("_"));
-            //     //     key2 = key2.substr(0,key2.lastIndexOf("_"));
-            //     //     if (key1.match(key2) && value1 != -1) {
-            //     //         Object.values(data_json.modellist[modelfile_num])[i + 1] = -1;
-            //     //     }
-            //     // }
-            //     // console.log('keysss ', Object.keys(data_json.modellist[modelfile_num])[i], value1);
-            // }
-            // // const gui = new GUI();
-            // const controls = {};
-            // const keys = [];
-
-            // const morphs = gui.addFolder('Morphs');
-
             function initControls() {
 
                 for (let i = 0; i < 3; i++) {
@@ -265,7 +253,6 @@
                     for (const key in standardlist) {
     
                         controls[i][key] = 0.0;
-                        // controls[key] = 0.0;
     
                     }
                 }
@@ -278,65 +265,74 @@
                     for (const key in standardlist) {
     
                         keys[i].push(key);
-                        // keys.push(key);
     
                     }
                 }
             }
 
             function initMorphs() {
-                //此程式只有eye_happy_wink_left能控制
-                // let i = 0;
-                // for (const key in standardlist) {
-                //     // console.log('key', key);
-                //     if (i != 14) {
-                //         morphs.add(controls, key, 0.0, 0.0, 0.01).onChange(onChangeMorph);
-                //     }
-                //     else {
-                //         morphs.add(controls, key, 0.0, 1.0, 0.01).onChange(onChangeMorph);
-                //     }
-                //     i++;
-                //     let temp = key;
-                //     console.log('data_json', key, data_json.modellist[0][temp]);
-                // }
+
                 for (let i = 0; i < 3; i++) {
-                    console.log('data_json', data_json);
 
+                    for (const key in data_json.modellist[i]) {
+
+                    }
                     for (const key in standardlist) {
-                        if (data_json.modellist[i].hasOwnProperty(key)) {
-                            for (const key2 in data_json.modellist[i]) {
+                        if (Object.keys(standardlist).indexOf(key) >= 37){
+                            morphs[i].add(controls[i], key, -1.0, 1.0, 0.01).onChange(onChangeMorph);
+                        } else {
 
-                            }
-                            if (data_json.modellist[i][key] != -1 ) {
-
-                                morphs[i].add(controls[i], key, 0.0, 1.0, 0.01).onChange(onChangeMorph);
+                            if (data_json.modellist[i].hasOwnProperty(key)) {
+                                if (data_json.modellist[i][key] != -1 ) {
+    
+                                    morphs[i].add(controls[i], key, 0.0, 1.0, 0.01).onChange(onChangeMorph);
+                                } else {
+                                    morphs[i].add(controls[i], key, 0.0, 0.0, 0.01).onChange(onChangeMorph);
+                                }
                             } else {
                                 morphs[i].add(controls[i], key, 0.0, 0.0, 0.01).onChange(onChangeMorph);
                             }
-                        } else {
-                            morphs[i].add(controls[i], key, 0.0, 0.0, 0.01).onChange(onChangeMorph);
                         }
-
                     }
 
                 }
 
             }
-
             function onChangeMorph() {
+                
                 //此程式只有eye_happy_wink_left能控制
                 // const key = keys[14];
                 // const value = controls[key];
                 // mesh.morphTargetInfluences[0] = value;
 
                 for (const key in standardlist) {
-
                     const value = controls[modelfile_num][ key ];
-                    mesh.morphTargetInfluences[ data_json.modellist[modelfile_num][key] ] = value;
+                    switch(key) {
+                        case 'iris_rotation_x':
+                            mesh.skeleton.bones[leye_index].rotation.x = normalize(eyeRange[0], eyeRange[1], value);
+                            mesh.skeleton.bones[reye_index].rotation.x = normalize(eyeRange[0], eyeRange[1], value);
+                            break;
+                        case 'iris_rotation_y':
+                            mesh.skeleton.bones[leye_index].rotation.y = normalize(eyeRange[2], eyeRange[3], value);
+                            mesh.skeleton.bones[reye_index].rotation.y = normalize(eyeRange[2], eyeRange[3], value);
+                            break;
+                        case 'head_x':
+                            mesh.skeleton.bones[head_index].rotation.x = normalize(-15, 15, value);
+                            break;
+                        case 'head_y':
+                            mesh.skeleton.bones[head_index].rotation.y = normalize(-15, 15, value);
+                            break;
+                        case 'head_z':
+                            mesh.skeleton.bones[head_index].rotation.z = normalize(-15, 15, value);
+                            break;
+                        default:
+                            mesh.morphTargetInfluences[ data_json.modellist[modelfile_num][key] ] = value;
+                            break;
+                    }
                 }
 
             }
-
+            console.log(modelfile_num);
             initControls();
             initKeys();
             initMorphs();
@@ -346,6 +342,9 @@
             morphs[modelfile_num].open();
             loadstatus = 1;
 
+        }
+        function normalize(a, b, value) {
+            return ((b - a) *(value + 1 ) / 2 + a) * Math.PI / 180; 
         }
         function findeye_index(initgui) {
             for (let i = 0; i < mesh.skeleton.bones.length; i++) {
@@ -370,11 +369,9 @@
                 if (this.readyState == 4 && this.status == 200) {
                     data_json = JSON.parse(this.responseText);
                     data_json_length = Object.keys(data_json.modellist).length - 1;
-                    console.log(data_json);
                     init();
                 }
             };
-            //changestdmorth();
             xmlhttp.open("GET", url, true);
             xmlhttp.send();
         }
@@ -383,21 +380,10 @@
         function keyboard(e) {
             switch(e.key) {
                 case 'a':
-                    // if (modelfile_num == 0) {
-                    //     modelfile_num = 0;
-                    // } else {
-                    //     modelfile_num -= 1;
-                    //     changemodel();
-                    // }
                     changemodel(-1);
                     break;
                 case 'd':
-                    // if (modelfile_num == data_json_length) {
-                    //     modelfile_num = modelfile_num;
-                    // } else {
-                    //     modelfile_num += 1;
-                    //     changemodel();
-                    // }
+
                     changemodel(1);
                     break;
                 default:
@@ -411,9 +397,7 @@
             modelfile_num += position;
             if (modelfile_num < 0) {
                 modelfile_num = 0;
-            }
-
-            if (modelfile_num >= 2) {
+            } else if (modelfile_num >= 2) {
                 modelfile_num = 2;
             }
             mesh = meshes[modelfile_num];
@@ -424,18 +408,14 @@
         function delete3DOBJ(obj){
 			
 			let selectedObject = scene.getObjectByName(obj);
-			// console.log(selectedObject);
 			scene.remove( selectedObject );
 	
         }
 
         function animate() {
-            // console.log('status',loadstatus, countLoad);
 
             if (loadstatus == 0 && countLoad == 3) {
     
-                console.log ('now mesh', mesh);
-                console.log (meshes);
                 findeye_index((initgui) => {
                     
                     initGui();
