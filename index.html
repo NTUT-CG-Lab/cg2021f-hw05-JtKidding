@@ -26,7 +26,7 @@
     <script>
         // 建構子 ScoreOutputer 接受一個字串，該字串為 csv 的檔案名稱
         // 以下面範例，檔名就為 "109598105(總分: 6).csv"
-        var so = new ScoreOutputer("109598105");
+        var so = new ScoreOutputer("110598050");
         so.installCSS(function () {
             // 安裝 bootstrap 的 css，如果在 html 上方引用 bootstrap 5.1.1 的話就不用使用 installCSS ，注意一定要 bootstrap css 5.1.1 版
             // installCSS 接收一個 callback 當作參數，作為成功安裝 bootstrap css 的回呼函式
@@ -84,11 +84,20 @@
         let SCREEN_HEIGHT = window.innerHeight;
         let aspect = SCREEN_WIDTH / SCREEN_HEIGHT;
         let frustumSize = 30;
-        let reye_index = 0, leye_index = 0, head_index = 0;
-        let gui = new GUI();
+        let reye_index = 0;
+        let leye_index = 0;
+        let head_index = 0;
         let data_json, data_json_length;
         let modelfile_num = 0;
         let loadstatus = 0;
+        
+        let meshes = [];
+        let morphs = new Array(3);
+        let keys = new Array(3);
+        let controls = new Array(3);
+        let dictionary = new Array(3);
+        let gui = new GUI();
+        let countLoad = 0;
         let standardlist = {
             eyebrow_troubled_left: 0, eyebrow_troubled_right: 0, eyebrow_angry_left: 0, eyebrow_angry_right: 0, eyebrow_serious_left: 0, eyebrow_serious_right: 0
             , eyebrow_happy_left: 0, eyebrow_happy_right: 0, eyebrow_lowered_left: 0, eyebrow_lowered_right: 0, eyebrow_raised_left: 0, eyebrow_raised_right: 0, eye_wink_left: 0, eye_wink_right: 0
@@ -96,6 +105,7 @@
             eye_raised_lower_eyelid_right: 0, eye_surprised_left: 0, eye_surprised_right: 0, iris_small_left: 0, iris_small_right: 0, mouth_aaa: 0, mouth_iii: 0, mouth_uuu: 0, mouth_eee: 0, mouth_ooo: 0
             , mouth_delta: 0, mouth_smirk: 0, mouth_raised_corner_left: 0, mouth_raised_corner_right: 0, mouth_lowered_corner_left: 0, mouth_lowered_corner_right: 0, iris_rotation_x: 0, iris_rotation_y: 0, head_x: 0, head_y: 0, head_z: 0
         };
+
         Ammo().then(function (AmmoLib) {
 
             Ammo = AmmoLib;
@@ -147,25 +157,40 @@
             }
 
             // const modelFile = 'models/mmd/kizunaai/kizunaai.pmx';
-            const modelFile = data_json.modellist[modelfile_num].location;
+            // const modelFile = data_json.modellist[modelfile_num].location;
             helper = new MMDAnimationHelper();
-
             const loader = new MMDLoader();
 
-            loader.load(modelFile, function (object) {
+            function loadModel() {
 
-                mesh = object;
-                mesh.position.y = - 10;
-
-                scene.add(mesh);
-
-                findeye_index();
-                initGui();
-                loadstatus = 1;
-            }, onProgress, null);
-
+                for (let i = 0; i < 3; i++) {
+                    let model = data_json.modellist[i].location;
+                    loader.load(model, function (object) {
+                        let temp;
+                        temp = object;
+                        // console.log('object', object);
+                        temp.position.y = -10;
+                        temp.name = 'mmdModel';
+                        meshes.push(temp);
+                        console.log('mesh', temp);
+                        
+                        if (i == 0) {
+                            console.log ('loggggggin', i);
+                            mesh = temp;
+                            scene.add( mesh );
+                            countLoad++;
+                        } else {
+                            countLoad++;
+                        }
+                        
+                    }, onProgress, null);
+                    
+                    console.log('count', countLoad);
+                }
+            }
+            loadModel();
+            
             //
-
             window.addEventListener('resize', onWindowResize);
             window.addEventListener('keydown', keyboard);
             const cameracontrols = new OrbitControls(camera, renderer.domElement);
@@ -190,56 +215,126 @@
 
         }
         function initGui() {
+            console.log('in gui');
+            for (let i = 0; i < 3; i++) {
+                keys[i] = [];
+                controls[i] = {};
+            
+                const fileName = ['物述有栖.pmx',
+                                'kizunaai.pmx', 
+                                '『天宮こころ(Kokoro Amamiya)』.pmx'];
+            
+                morphs[i] = gui.addFolder( fileName[i] );
+            }
 
-            gui = new GUI();
+            // for (const key in data_json.modellist[modelfile_num]) {
+            //     console.log('key',
+            //     Object.keys(data_json.modellist[modelfile_num]).indexOf(key), //position
+            //     key, '      ',  // origin name
+            //     key.substr(0,key.lastIndexOf("_")),   //change name
+            //     Object.values(data_json.modellist[modelfile_num])[Object.keys(data_json.modellist[modelfile_num]).indexOf(key)]); //value
+            //     // if (key.indexOf('left') || key.indexOf('right')) {
 
-            const controls = {};
-            const keys = [];
+            //     // }
+            // }
+            
+            // for (let i = 1; i < Object.keys(data_json.modellist[modelfile_num]).length - 6; i+2) {
+            //     let key1 = Object.keys(data_json.modellist[modelfile_num])[i];
+            //     let value1 = Object.values(data_json.modellist[modelfile_num])[i];
+            //     let key2 = Object.keys(data_json.modellist[modelfile_num])[i + 1];
+            //     let value2 = Object.values(data_json.modellist[modelfile_num])[i + 1];
+            //     // if (key1.indexOf('left') || key2.indexOf('right')) {
+            //     //     key1 = key1.substr(0,key1.lastIndexOf("_"));
+            //     //     key2 = key2.substr(0,key2.lastIndexOf("_"));
+            //     //     if (key1.match(key2) && value1 != -1) {
+            //     //         Object.values(data_json.modellist[modelfile_num])[i + 1] = -1;
+            //     //     }
+            //     // }
+            //     // console.log('keysss ', Object.keys(data_json.modellist[modelfile_num])[i], value1);
+            // }
+            // // const gui = new GUI();
+            // const controls = {};
+            // const keys = [];
 
-            const morphs = gui.addFolder('Morphs');
+            // const morphs = gui.addFolder('Morphs');
 
             function initControls() {
 
-                for (const key in standardlist) {
+                for (let i = 0; i < 3; i++) {
 
-                    controls[key] = 0.0;
-
+                    for (const key in standardlist) {
+    
+                        controls[i][key] = 0.0;
+                        // controls[key] = 0.0;
+    
+                    }
                 }
-
-
-
             }
 
             function initKeys() {
 
-                for (const key in standardlist) {
+                for (let i = 0; i < 3; i++) {
 
-                    keys.push(key);
-
+                    for (const key in standardlist) {
+    
+                        keys[i].push(key);
+                        // keys.push(key);
+    
+                    }
                 }
-
             }
 
             function initMorphs() {
                 //此程式只有eye_happy_wink_left能控制
-                let i = 0;
-                for (const key in standardlist) {
-                    if (i != 14) {
-                        morphs.add(controls, key, 0.0, 0.0, 0.01).onChange(onChangeMorph);
+                // let i = 0;
+                // for (const key in standardlist) {
+                //     // console.log('key', key);
+                //     if (i != 14) {
+                //         morphs.add(controls, key, 0.0, 0.0, 0.01).onChange(onChangeMorph);
+                //     }
+                //     else {
+                //         morphs.add(controls, key, 0.0, 1.0, 0.01).onChange(onChangeMorph);
+                //     }
+                //     i++;
+                //     let temp = key;
+                //     console.log('data_json', key, data_json.modellist[0][temp]);
+                // }
+                for (let i = 0; i < 3; i++) {
+                    console.log('data_json', data_json);
+
+                    for (const key in standardlist) {
+                        if (data_json.modellist[i].hasOwnProperty(key)) {
+                            for (const key2 in data_json.modellist[i]) {
+
+                            }
+                            if (data_json.modellist[i][key] != -1 ) {
+
+                                morphs[i].add(controls[i], key, 0.0, 1.0, 0.01).onChange(onChangeMorph);
+                            } else {
+                                morphs[i].add(controls[i], key, 0.0, 0.0, 0.01).onChange(onChangeMorph);
+                            }
+                        } else {
+                            morphs[i].add(controls[i], key, 0.0, 0.0, 0.01).onChange(onChangeMorph);
+                        }
+
                     }
-                    else {
-                        morphs.add(controls, key, 0.0, 1.0, 0.01).onChange(onChangeMorph);
-                    }
-                    i++;
+
                 }
 
             }
 
             function onChangeMorph() {
                 //此程式只有eye_happy_wink_left能控制
-                const key = keys[14];
-                const value = controls[key];
-                mesh.morphTargetInfluences[0] = value;
+                // const key = keys[14];
+                // const value = controls[key];
+                // mesh.morphTargetInfluences[0] = value;
+
+                for (const key in standardlist) {
+
+                    const value = controls[modelfile_num][ key ];
+                    mesh.morphTargetInfluences[ data_json.modellist[modelfile_num][key] ] = value;
+                }
+
             }
 
             initControls();
@@ -248,10 +343,11 @@
 
             onChangeMorph();
 
-            morphs.open();
+            morphs[modelfile_num].open();
+            loadstatus = 1;
 
         }
-        function findeye_index() {
+        function findeye_index(initgui) {
             for (let i = 0; i < mesh.skeleton.bones.length; i++) {
                 if (mesh.skeleton.bones[i].name == '左目') {
                     leye_index = i;
@@ -263,6 +359,7 @@
                     head_index = i;
                 }
             }
+            initgui();
         }
         //
         
@@ -286,61 +383,65 @@
         function keyboard(e) {
             switch(e.key) {
                 case 'a':
-                    if (modelfile_num == 0) {
-                        modelfile_num = 0;
-                    } else {
-                        modelfile_num -= 1;
-                        changemodel();
-                    }
+                    // if (modelfile_num == 0) {
+                    //     modelfile_num = 0;
+                    // } else {
+                    //     modelfile_num -= 1;
+                    //     changemodel();
+                    // }
+                    changemodel(-1);
                     break;
                 case 'd':
-                    if (modelfile_num == data_json_length) {
-                        modelfile_num = modelfile_num;
-                    } else {
-                        modelfile_num += 1;
-                        changemodel();
-                    }
+                    // if (modelfile_num == data_json_length) {
+                    //     modelfile_num = modelfile_num;
+                    // } else {
+                    //     modelfile_num += 1;
+                    //     changemodel();
+                    // }
+                    changemodel(1);
                     break;
                 default:
                     break;
             }
         }
 
-        function changemodel() {
-            scene.remove(mesh);
-            gui.destroy();
-            function onProgress(xhr) {
-
-                if (xhr.lengthComputable) {
-
-                    const percentComplete = xhr.loaded / xhr.total * 100;
-                    console.log(Math.round(percentComplete, 2) + '% downloaded');
-
-                }
-
+        function changemodel(position) {
+            delete3DOBJ('mmdModel');
+            morphs[modelfile_num].close();
+            modelfile_num += position;
+            if (modelfile_num < 0) {
+                modelfile_num = 0;
             }
 
-            // const modelFile = 'models/mmd/kizunaai/kizunaai.pmx';
-            const modelFile = data_json.modellist[modelfile_num].location;
-            helper = new MMDAnimationHelper();
+            if (modelfile_num >= 2) {
+                modelfile_num = 2;
+            }
+            mesh = meshes[modelfile_num];
+            scene.add(mesh);
+            morphs[modelfile_num].open();
+        }
 
-            const loader = new MMDLoader();
-
-            loader.load(modelFile, function (object) {
-
-                mesh = object;
-                mesh.position.y = - 10;
-
-                scene.add(mesh);
-
-                findeye_index();
-                initGui();
-                loadstatus = 1;
-            }, onProgress, null);
+        function delete3DOBJ(obj){
+			
+			let selectedObject = scene.getObjectByName(obj);
+			// console.log(selectedObject);
+			scene.remove( selectedObject );
+	
         }
 
         function animate() {
+            // console.log('status',loadstatus, countLoad);
 
+            if (loadstatus == 0 && countLoad == 3) {
+    
+                console.log ('now mesh', mesh);
+                console.log (meshes);
+                findeye_index((initgui) => {
+                    
+                    initGui();
+                });
+                loadstatus = 1;
+            }
             requestAnimationFrame(animate);
             render();
 
