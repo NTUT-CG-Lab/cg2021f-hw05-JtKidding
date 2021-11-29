@@ -157,12 +157,11 @@
 
             }
             for ( let j = 0; j < 3; j++) {
-                for (let i = 1; i < Object.keys(data_json.modellist[j]).length - 5; i = i+2) {
+                for (let i = 1; i < Object.keys(data_json.modellist[j]).length - 6; i = i+2) {
                     let key1 = Object.keys(data_json.modellist[j])[i];
                     let value1 = Object.values(data_json.modellist[j])[i];
                     let key2 = Object.keys(data_json.modellist[j])[i + 1];
                     let value2 = Object.values(data_json.modellist[j])[i + 1];
-                    if (j == 2) console.log(key1, value1, key2, value2);
                     if (key1.indexOf('left') || key2.indexOf('right')) {
                         let temp1 = key1.substr(0,key1.lastIndexOf("_"));
                         let temp2 = key2.substr(0,key2.lastIndexOf("_"));
