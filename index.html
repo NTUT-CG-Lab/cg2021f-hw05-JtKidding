@@ -156,21 +156,20 @@
                 }
 
             }
-
-            for (let i = 1; i < Object.keys(data_json.modellist[modelfile_num]).length - 6; i = i+2) {
-                let key1 = Object.keys(data_json.modellist[modelfile_num])[i];
-                let value1 = Object.values(data_json.modellist[modelfile_num])[i];
-                let key2 = Object.keys(data_json.modellist[modelfile_num])[i + 1];
-                let value2 = Object.values(data_json.modellist[modelfile_num])[i + 1];
-                console.log(key1, value1, key2, value2);
-                if (key1.indexOf('left') || key2.indexOf('right')) {
-                    console.log('in', key1, key2);
-                    let temp1 = key1.substr(0,key1.lastIndexOf("_"));
-                    let temp2 = key2.substr(0,key2.lastIndexOf("_"));
-                    
-                    console.log(temp1, temp2);
-                    if (temp1 === temp2 && value1 == value2 && value2 != -1) {
-                        data_json.modellist[modelfile_num][key2] = -1;
+            for ( let j = 0; j < 3; j++) {
+                for (let i = 1; i < Object.keys(data_json.modellist[j]).length - 5; i = i+2) {
+                    let key1 = Object.keys(data_json.modellist[j])[i];
+                    let value1 = Object.values(data_json.modellist[j])[i];
+                    let key2 = Object.keys(data_json.modellist[j])[i + 1];
+                    let value2 = Object.values(data_json.modellist[j])[i + 1];
+                    if (j == 2) console.log(key1, value1, key2, value2);
+                    if (key1.indexOf('left') || key2.indexOf('right')) {
+                        let temp1 = key1.substr(0,key1.lastIndexOf("_"));
+                        let temp2 = key2.substr(0,key2.lastIndexOf("_"));
+                        
+                        if (temp1 == temp2 && value1 == value2 && value2 != -1) {
+                            data_json.modellist[j][key2] = -1;
+                        }
                     }
                 }
             }
@@ -194,7 +193,6 @@
                         meshes[i] = temp;
                         
                         if (i == 0) {
-                            console.log ('loggggggin', i);
                             mesh = temp;
                             scene.add( mesh );
                             countLoad++;
@@ -204,7 +202,6 @@
                         
                     }, onProgress, null);
                     
-                    console.log('count', countLoad);
                 }
             }
             loadModel();
@@ -392,6 +389,7 @@
         }
 
         function changemodel(position) {
+            console.log('change');
             delete3DOBJ('mmdModel');
             morphs[modelfile_num].close();
             modelfile_num += position;
